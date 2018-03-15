@@ -1,0 +1,11 @@
+dwl_csuite:
+  robot:
+    init_position: [0., 0., 0.64]
+    init_rpy: [0., 0., 0.]
+  simulation:
+    gui: false
+    time_step: 1e-3
+    gravity: [0., 0., -9.81]
+  ros:
+    enable: true
+    publish_rate: 100.
