@@ -2,10 +2,18 @@ dwl_csuite:
   robot:
     init_position: [0., 0., 0.64]
     init_rpy: [0., 0., 0.]
+#    root_path:
+    urdf_path: hyq/hyq.urdf
+    yarf_path: hyq/hyq.yarf
   simulation:
     gui: false
     time_step: 1e-3
     gravity: [0., 0., -9.81]
+    camera:
+      distance: 2.
+      yaw: 40.
+      pitch: -20.
+      target: [0.2, 0., 0.15]
   ros:
     enable: true
     publish_rate: 100.

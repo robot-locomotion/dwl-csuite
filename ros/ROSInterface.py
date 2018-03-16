@@ -5,13 +5,13 @@ from dwl_msgs import WholeBodyStatePublisher as wb_pub
 
 
 class ROSInterface():
-    def __init__(self, fbs, rate):
+    def __init__(self, fbs, rate, body_link):
         # Passing the floating-base system
         self.fbs = fbs
 
         self.pub_rate = rate
         self.last_pub_time = 0.
-        self.base_link = 'base_link' #fbs.getFloatingBaseBody()
+        self.base_link = body_link #fbs.getFloatingBaseBody()
 
         # Declaring the node
         rospy.init_node('dwl_csuite', anonymous=True)
@@ -22,8 +22,8 @@ class ROSInterface():
         # Declaring the different publishers
         self.clock_pub = rospy.Publisher('/clock', Clock, queue_size=1)
         self.tf_br = tf.TransformBroadcaster()
-        self.joint_pub = rospy.Publisher('/hyq/joint_states', JointState, queue_size=1)
-        self.ws_pub = wb_pub.WholeBodyStatePublisher('/hyq/robot_states', self.fbs)
+        self.joint_pub = rospy.Publisher('/joint_states', JointState, queue_size=1)
+        self.ws_pub = wb_pub.WholeBodyStatePublisher('/robot_states', self.fbs)
         
         # Initializing the joint state message
         self.joint_msg = JointState()
