@@ -1,16 +1,32 @@
 import threading
-import cmd, sys
+import cmd, sys, os
 from bullet.ControlSuite import ControlSuite
 import numpy as np
 
 
 class ControlSuiteShell(cmd.Cmd):
-    intro = 'Welcome to the control suite shell.\nType help or ? to list commands.\n'
+    intro = 'Welcome to the dwl control suite shell.\nType help or ? to list commands.\n'
     prompt = '(dwl-csuite) '
 
-    # Create the bullet simulator   
-    csuite = ControlSuite()
+    def __init__(self):
+        cmd.Cmd.__init__(self)
 
+        # Create the bullet simulator
+        root_path = os.path.dirname(os.path.abspath(__file__)) + '/config/'
+        filename = root_path + 'dwl_csuite.yaml'
+        nargs = len(sys.argv)
+        if nargs == 1:
+            print 'Openning the default dwl_csuite config file:', filename
+        elif nargs == 2:
+            filename = root_path + '/' + sys.argv[1]
+            print 'Openning the', filename, ' config'
+        elif nargs == 3:
+            root_path = sys.argv[1]
+            filename = root_path + '/' + sys.argv[2]
+            print 'Openning the', filename, ' config'
+        else:
+            print 'Wrong input, running the default dwl_csuite config file'
+        self.csuite = ControlSuite(filename)
 
     def do_step(self, arg):
         'Run a number of step simulations: step 10.\nThe default number is 1'

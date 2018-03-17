@@ -10,9 +10,9 @@ from csuite_PDController.PDController import PDController
 
 
 class ControlSuite():
-    def __init__(self):
+    def __init__(self, filename):
         # Parsing the dwl control suite configuration and initialization
-        self.parseConfigFile()
+        self.parseConfigFile(filename)
         self.loop_sim = False
         self.fixed_base = False
         self.t = 0.
@@ -67,11 +67,10 @@ class ControlSuite():
         if self.enable_ros:
             self.enableROS()
 
-    def parseConfigFile(self):
+    def parseConfigFile(self, filename):
         # Default parameters of the control suite
         yaml = dwl.YamlWrapper()
-        fpath = os.path.dirname(os.path.abspath(__file__))
-        yaml.setFile(fpath + '/../config/dwl_csuite.yaml')
+        yaml.setFile(filename)
 
         # Parsing robot parameters
         robot_ns = ['dwl_csuite', 'robot']
