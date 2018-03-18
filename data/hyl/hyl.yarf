@@ -1,0 +1,8 @@
+robot:
+  # Names of the feet
+  feet: [foot]
+  default_pose:
+    slider_joint: 0.
+    haa_joint: 0.
+    hfe_joint: 0.75
+    kfe_joint: -1.5
