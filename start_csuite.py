@@ -1,6 +1,6 @@
 import threading
 import cmd, sys, os
-from bullet.ControlSuite import ControlSuite
+from bullet.ControlSuite import ControlSuite, bcolors
 import numpy as np
 
 
@@ -16,16 +16,18 @@ class ControlSuiteShell(cmd.Cmd):
         filename = root_path + 'dwl_csuite.yaml'
         nargs = len(sys.argv)
         if nargs == 1:
-            print 'Openning the default dwl_csuite config file:', filename
+            print bcolors.OKBLUE + 'Openning the default dwl_csuite config file:', \
+                  filename + bcolors.ENDC
         elif nargs == 2:
             filename = root_path + '/' + sys.argv[1]
-            print 'Openning the', filename, ' config'
+            print bcolors.OKBLUE + 'Openning the', filename, 'config file' + bcolors.ENDC
         elif nargs == 3:
             root_path = sys.argv[1]
             filename = root_path + '/' + sys.argv[2]
-            print 'Openning the', filename, ' config'
+            print bcolors.OKBLUE + 'Openning the', filename, 'config file' + bcolors.ENDC
         else:
-            print 'Wrong input, running the default dwl_csuite config file'
+            print bcolors.FAIL + 'Wrong input, running the default dwl_csuite config file' \
+                 + bcolors.ENDC
         self.csuite = ControlSuite(filename)
 
     def do_step(self, arg):
@@ -34,7 +36,7 @@ class ControlSuiteShell(cmd.Cmd):
         try:
             nstep = int(arg)
         except ValueError:
-            print "Not an integer, running only 1 step"
+            print bcolors.WARNING + "Not an integer, running only 1 step" + bcolors.ENDC
 
         for i in range(nstep):
             self.csuite.update()
@@ -56,17 +58,21 @@ class ControlSuiteShell(cmd.Cmd):
     def do_getControllerList(self, arg):
         'Get a list of controller.\nThe controller are Python modules with csuite as prefix name'
         for key in self.csuite.controller_plugins:
-            print self.prompt, key
+            print key
 
     def do_changeController(self, arg):
-        'Change the controller: changeController controller_name.\nYou can see the list of controller by typing getControllerList'
+        'Change the controller: changeController controller_name config_file (optional).\nYou can see the list of controller by typing getControllerList'
         # Searching the controller
-        plgs = self.csuite.controller_plugins
-        for key in plgs:
-            if key == arg:
-                self.csuite.setController(plgs[key])
-                return
-        print 'The' + arg +' controller has not be found'
+        ctrl_info = tuple(map(str, arg.split()))
+        nin = len(ctrl_info)
+        if nin == 0:
+            print 'You need to pass the controller name and config file (optional)'
+        elif nin == 1:
+            self.csuite.changeController(ctrl_info[0], '')
+        elif nin == 2:
+            self.csuite.changeController(ctrl_info[0], ctrl_info[1])
+        else:
+            print 'Wrong inputs'
 
     def do_resetRobot(self, arg):
         'Reset the robot position'
@@ -78,14 +84,16 @@ class ControlSuiteShell(cmd.Cmd):
         try:
             pos = tuple(map(float, arg.split()))
         except ValueError:
-            print "Not an array of floats, fixed the base with the default posture"
+            print bcolors.WARNING + 'Not an array of floats, fixed the base with the default posture' \
+                  + bcolors.ENDC
         
         if not pos:
             self.csuite.fixedBase()
         elif len(pos) == 3:
             self.csuite.fixedBasePosition(np.asarray(pos))
         else:
-            print 'You should pass a 3D position, using the default posture'
+            print bcolors.WARNING + 'You should pass a 3D position, using the default posture' \
+                  + bcolors.ENDC
             self.csuite.fixedBase()
 
     def do_enableROS(self, arg):
@@ -107,7 +115,7 @@ class ControlSuiteShell(cmd.Cmd):
             self.csuite.biface.setTimeStep(time_step)
             self.csuite.time_step = time_step
         except ValueError:
-            print "Not a float, using the same time step"
+            print bcolors.WARNING + "Not a float, using the same time step" + bcolors.ENDC
 
 if __name__ == '__main__':
     ControlSuiteShell().cmdloop()

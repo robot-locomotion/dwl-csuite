@@ -6,7 +6,17 @@ from ros.ROSInterface import ROSInterface
 import pybullet_data
 import importlib, pkgutil
 from control.Controller import ws
-from csuite_PDController.PDController import PDController
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 class ControlSuite():
@@ -56,13 +66,15 @@ class ControlSuite():
         # Creating the actual whole-body state
         self.ws_states = [dwl.WholeBodyState(self.fbs.getJointDoF()), # actual state
                           dwl.WholeBodyState(self.fbs.getJointDoF())] # desired state
-
-        # Creating the controller
-        self.controller = PDController()
     
         self.parseRobot()
         self.resetRobotPosition(self.robot_pos0)
         self.readControllerPlugins()
+
+        # Creating the controller
+        if not self.changeController(self.ctrl_name, self.ctrl_config):
+            print bcolors.FAIL + 'Error: the default controller is not defined' + bcolors.ENDC
+            sys.exit()
 
         if self.enable_ros:
             self.enableROS()
@@ -121,6 +133,25 @@ class ControlSuite():
             self.cam_pitch = cpitch
         yaml.readArray3d(self.cam_target, 'target', cam_ns)
 
+        # Parsing the default control parameters
+        ctrl_ns = ['dwl_csuite', 'control']
+        self.ctrl_name = 'csuite_PDController'
+        read, cname = yaml.readString('default', ctrl_ns)
+        if read:
+            self.ctrl_name = cname
+        else:
+            print bcolors.OKGREEN \
+             + 'Not defined controller, running the csuite_PDController' \
+             + bcolors.ENDC
+        self.ctrl_config = ''
+        read, fname = yaml.readString('config_file', ctrl_ns)
+        if read:
+            self.ctrl_config = fname
+        else:
+            print bcolors.WARNING \
+             + 'Warning: there is not defined a configuration file for the controller' \
+             + bcolors.ENDC
+
         # Parsing ROS parameters
         ros_ns = ['dwl_csuite', 'ros']
         self.enable_ros = False
@@ -165,8 +196,16 @@ class ControlSuite():
         if self.fixed_base:
             self.resetRobotPosition(self.fixed_pos)
     
-    def setController(self, ctrl):
-        self.controller = ctrl
+    def changeController(self, ctrl_name, ctrl_config):
+        # Checking if the controller exist
+        if not ctrl_name in self.controller_plugins:
+            print bcolors.WARNING + 'Warning: the ' + self.ctrl_name + ' cannot be found' + bcolors.ENDC
+            return False
+        
+        # Switching controller and starting it
+        self.controller = getattr(self.controller_plugins[ctrl_name], ctrl_name)(self.fbs, ctrl_config)
+        self.controller.start(self.ws_states)
+        return True
 
     def parseRobot(self):
         # TODO Assuming the I have force/torque sensors in each foot
@@ -196,6 +235,12 @@ class ControlSuite():
                                            pb.getQuaternionFromEuler(self.robot_rpy0))
 
         # Resetting the joint position
+        for key in self.joints_bullet:
+            # Setting to zero unactuacted joints
+            if not self.fbs.existJoint(key):
+                idx = self.joints_bullet[key]
+                pb.resetJointState(self.robot_id, idx, 0.)
+
         q0 = np.asarray(self.fbs.getDefaultPosture())
         for j in range(self.fbs.getJointDoF()):
             name = self.fbs.getJointNames()[j]
@@ -275,17 +320,19 @@ class ControlSuite():
 
   
     def setJointCommand(self, u):
+        # This resets the velocity controller for joints that are not actuated
+        for name in self.joints_bullet:
+            idx = self.joints_bullet[name]
+            pb.setJointMotorControl2(self.robot_id, idx,
+                                     pb.VELOCITY_CONTROL,
+                                     targetVelocity=0, force=0)
+        # Sending the joint torque commands to bullet engine
         for j in range(self.fbs.getJointDoF()):
-            name = self.fbs.getJointNames()[j]
+            name = self.fbs.getJointName(j)
             idx = self.joints_bullet[name]
       
             # Simulating a perfect torque tracking controller
             self.ws_states[ws.actual].setJointEffort(u[j], j)
-      
-            # Disabling the default velocity controller
-            pb.setJointMotorControl2(self.robot_id, idx,
-                                     pb.VELOCITY_CONTROL,
-                                     targetVelocity=0, force=0)
 
             # Sending the torque commands to the bullet engine
             pb.setJointMotorControl2(self.robot_id, idx,

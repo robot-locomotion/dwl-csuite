@@ -5,8 +5,12 @@ class ws:
     desired = 1
 
 class Controller():
-    def __init__(self):
-        return None
+    def __init__(self, fbs, filename):
+        self.fbs = fbs
+        self.filename = filename
+        self.yaml = dwl.YamlWrapper()
+        self.yaml.setFile(self.filename)
+        print 'Controller config file:', self.filename
 
     def start(self, states):
         return None

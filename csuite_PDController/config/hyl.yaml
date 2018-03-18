@@ -1,0 +1,5 @@
+pd_controller:
+  gains:
+    slider_joint: {p: 10000., d: 50.}
+    hfe_joint: {p: 300., d: 10.}
+    kfe_joint: {p: 200., d: 6.}

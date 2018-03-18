@@ -1,0 +1,14 @@
+pd_controller:
+  gains:
+    lf_haa_joint: {p: 300., d: 10.}
+    lf_hfe_joint: {p: 300., d: 10.}
+    lf_kfe_joint: {p: 200., d: 6.}
+    lh_haa_joint: {p: 300., d: 10.}
+    lh_hfe_joint: {p: 300., d: 10.}
+    lh_kfe_joint: {p: 200., d: 6.}
+    rf_haa_joint: {p: 300., d: 10.}
+    rf_hfe_joint: {p: 300., d: 10.}
+    rf_kfe_joint: {p: 200., d: 6.}
+    rh_haa_joint: {p: 300., d: 10.}
+    rh_hfe_joint: {p: 300., d: 10.}
+    rh_kfe_joint: {p: 200., d: 6.}
