@@ -2,7 +2,6 @@ import os, time, sys
 import dwl
 import numpy as np
 from BulletInterface import BulletInterface, pb
-from ros.ROSInterface import ROSInterface
 import pybullet_data
 import importlib, pkgutil
 from control.Controller import ws
@@ -339,6 +338,7 @@ class ControlSuite():
                                      pb.TORQUE_CONTROL, force=u[j])
 
     def enableROS(self):
+        from ros.ROSInterface import ROSInterface
         self.ros_iface = ROSInterface(self.fbs, self.pub_rate, pb.getBodyInfo(self.robot_id)[0])
         self.enable_ros = True
 
